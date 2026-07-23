@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from flask import Blueprint, jsonify, request
 from werkzeug.utils import secure_filename
 
@@ -45,8 +46,26 @@ def upload_file():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
-    return jsonify({
-        "success": True,
-        "filename": filename,
-        "message": "File uploaded successfully."
-    })
+    try:
+        if filename.endswith(".csv"):
+            df= pd.read_csv(filepath)
+        elif filename.endswith(".xlsx",".xsl"):
+            df= pd.read_excel(filepath)
+        else:
+            return jsonify({
+                "success": False,
+                "message": "Unsupported file format. Please upload a CSV or Excel file."
+            }), 400
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "rows":len(df),
+            "columns":len(df.columns),
+            "columns_names":list(df.columns),
+             "preview": df.head().to_dict(orient="records")
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error processing the file: {str(e)}"
+        }), 500
