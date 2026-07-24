@@ -25,6 +25,7 @@ def health():
 
 @main.route("/upload", methods=["POST"])
 def upload_file():
+
     if "file" not in request.files:
         return jsonify({
             "success": False,
@@ -47,9 +48,11 @@ def upload_file():
     file.save(filepath)
 
     try:
-        # Read the uploaded file
+
+      
+
         if filename.endswith(".csv"):
-            df = pd.read_csv(filepath)
+            df = pd.read_csv(filepath, sep=None, engine="python")
 
         elif filename.endswith((".xlsx", ".xls")):
             df = pd.read_excel(filepath)
@@ -57,10 +60,10 @@ def upload_file():
         else:
             return jsonify({
                 "success": False,
-                "message": "Unsupported file format. Please upload a CSV or Excel file."
+                "message": "Unsupported file format. Please upload CSV or Excel."
             }), 400
 
-        
+ 
         dataset_info = {
             "rows": len(df),
             "columns": len(df.columns),
@@ -69,46 +72,125 @@ def upload_file():
         }
 
         
+
         validation = {
             "data_types": df.dtypes.astype(str).to_dict(),
             "missing_values": df.isnull().sum().to_dict(),
             "duplicate_rows": int(df.duplicated().sum())
         }
+
+    
         total_missing = int(df.isnull().sum().sum())
         duplicate_rows = int(df.duplicated().sum())
 
         health_score = 100
 
         health_score -= min(total_missing * 2, 30)
-        health_score -= min(duplicate_rows * 5, 20  )
+        health_score -= min(duplicate_rows * 5, 20)
 
         health_score = max(0, health_score)
+
         if health_score >= 90:
-           status = "Excellent"
-
+            status = "Excellent"
         elif health_score >= 75:
-           status = "Good"
-
+            status = "Good"
         elif health_score >= 50:
-           status = "Fair"
-
+            status = "Fair"
         else:
-          status = "Poor"
+            status = "Poor"
+
         health_report = {
-    "status": status,
-    "health_score": health_score,
-    "total_missing_values": total_missing,
-    "duplicate_rows": duplicate_rows
-}
+            "status": status,
+            "health_score": health_score,
+            "total_missing_values": total_missing,
+            "duplicate_rows": duplicate_rows
+        }
+
+    
+
+        summary_statistics = (
+            df.describe(include="all")
+            .fillna("")
+            .to_dict()
+        )
+
+
+        numeric_df = df.select_dtypes(include=["number"])
+
+        correlation_matrix_dict = {}
+        strongest_correlation = {}
+
+        if numeric_df.shape[1] >= 2:
+
+            correlation_matrix = numeric_df.corr().round(2)
+
+            correlation_matrix_dict = correlation_matrix.to_dict()
+
+            corr_pairs = []
+
+            columns = correlation_matrix.columns
+
+            for i in range(len(columns)):
+                for j in range(i + 1, len(columns)):
+
+                    value = correlation_matrix.iloc[i, j]
+
+                    corr_pairs.append({
+                        "feature_1": columns[i],
+                        "feature_2": columns[j],
+                        "correlation": round(float(value), 2)
+                    })
+
+            if corr_pairs:
+
+                strongest_correlation = max(
+                    corr_pairs,
+                    key=lambda x: abs(x["correlation"])
+                )
+
+        
+        analysis = {
+            "summary_statistics": summary_statistics,
+            "correlation_matrix": correlation_matrix_dict,
+            "strongest_correlation": strongest_correlation,
+        }
+
+        insights = []
+
+        insights.append(
+            f"Dataset contains {len(df)} rows and {len(df.columns)} columns."
+       )
+
+        if total_missing == 0:
+          insights.append("No missing values were found.")
+        else:
+              insights.append(f"{total_missing} missing values detected.")
+
+        insights.append(
+            f"Dataset health is {status} ({health_score}/100)."
+        )
+
+
+        if strongest_correlation:
+            insights.append(
+                f"Strongest relationship found between "
+                f"{strongest_correlation['feature_1']} and "
+                f"{strongest_correlation['feature_2']} "
+                f"(Correlation = {strongest_correlation['correlation']})."
+            )
+
         return jsonify({
             "success": True,
             "filename": filename,
             "dataset_info": dataset_info,
             "validation": validation,
-            "health_report": health_report
+            "health_report": health_report,
+            "analysis": analysis,
+            "insights": insights,
         })
 
     except Exception as e:
+
         return jsonify({
             "success": False,
             "message": f"Error processing the file: {str(e)}"
