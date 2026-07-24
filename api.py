@@ -2,11 +2,11 @@ import os
 import pandas as pd
 from flask import Blueprint, jsonify, request
 from werkzeug.utils import secure_filename
+from visualization import generate_all_visualizations
 
 main = Blueprint("main", __name__)
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
-
 
 @main.route("/")
 def home():
@@ -178,7 +178,7 @@ def upload_file():
                 f"{strongest_correlation['feature_2']} "
                 f"(Correlation = {strongest_correlation['correlation']})."
             )
-
+        charts = generate_all_visualizations(df)
         return jsonify({
             "success": True,
             "filename": filename,
@@ -187,6 +187,7 @@ def upload_file():
             "health_report": health_report,
             "analysis": analysis,
             "insights": insights,
+            "visualizations": charts
         })
 
     except Exception as e:
