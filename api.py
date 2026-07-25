@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from werkzeug.utils import secure_filename
 from visualization import generate_all_visualizations
 from preprocessing import preprocess_dataset
+from machine_learning import run_machine_learning
 
 main = Blueprint("main", __name__)
 
@@ -66,7 +67,17 @@ def upload_file():
 
         preprocessing_report["preview"] = processed_df.head().to_dict(orient="records")
         preprocessing_report["preview"] = processed_df.head().to_dict(orient="records")
-  
+        algorithm = request.form.get("algorithm")
+        target_column = request.form.get("target_column")
+
+        ml_result = None
+
+        if algorithm:
+          ml_result = run_machine_learning(
+        processed_df,
+        algorithm=algorithm,
+        target_column=target_column
+    )
         dataset_info = {
             "rows": len(df),
             "columns": len(df.columns),
@@ -191,7 +202,8 @@ def upload_file():
             "analysis": analysis,
             "insights": insights,
             "visualizations": charts,
-            "preprocessing": preprocessing_report
+            "preprocessing": preprocessing_report,
+            "machine_learning": ml_result
 },
         )
 
