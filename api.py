@@ -3,6 +3,7 @@ import pandas as pd
 from flask import Blueprint, jsonify, request
 from werkzeug.utils import secure_filename
 from visualization import generate_all_visualizations
+from preprocessing import preprocess_dataset
 
 main = Blueprint("main", __name__)
 
@@ -11,9 +12,8 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 @main.route("/")
 def home():
     return jsonify({
-        "message": "Welcome to Blitz API 🚀"
+        "message": "THIS IS MY NEW API"
     })
-
 
 @main.route("/health")
 def health():
@@ -62,8 +62,11 @@ def upload_file():
                 "success": False,
                 "message": "Unsupported file format. Please upload CSV or Excel."
             }), 400
+        processed_df, preprocessing_report = preprocess_dataset(df)
 
- 
+        preprocessing_report["preview"] = processed_df.head().to_dict(orient="records")
+        preprocessing_report["preview"] = processed_df.head().to_dict(orient="records")
+  
         dataset_info = {
             "rows": len(df),
             "columns": len(df.columns),
@@ -187,8 +190,10 @@ def upload_file():
             "health_report": health_report,
             "analysis": analysis,
             "insights": insights,
-            "visualizations": charts
-        })
+            "visualizations": charts,
+            "preprocessing": preprocessing_report
+},
+        )
 
     except Exception as e:
 
