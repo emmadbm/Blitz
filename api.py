@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from visualization import generate_all_visualizations
 from preprocessing import preprocess_dataset
 from machine_learning import run_machine_learning
+from ai_insights import generate_ai_insights
 
 main = Blueprint("main", __name__)
 
@@ -66,7 +67,7 @@ def upload_file():
         processed_df, preprocessing_report = preprocess_dataset(df)
 
         preprocessing_report["preview"] = processed_df.head().to_dict(orient="records")
-        preprocessing_report["preview"] = processed_df.head().to_dict(orient="records")
+        
         algorithm = request.form.get("algorithm")
         target_column = request.form.get("target_column")
 
@@ -74,9 +75,9 @@ def upload_file():
 
         if algorithm:
           ml_result = run_machine_learning(
-        processed_df,
-        algorithm=algorithm,
-        target_column=target_column
+               processed_df,
+               algorithm=algorithm,
+               target_column=target_column
     )
         dataset_info = {
             "rows": len(df),
@@ -130,7 +131,7 @@ def upload_file():
 
 
         numeric_df = df.select_dtypes(include=["number"])
-
+        correlation_matrix = pd.DataFrame()
         correlation_matrix_dict = {}
         strongest_correlation = {}
 
@@ -162,7 +163,13 @@ def upload_file():
                     key=lambda x: abs(x["correlation"])
                 )
 
-        
+        ai_insights = generate_ai_insights(
+                processed_df,
+                preprocessing_report,
+                summary_statistics,
+                correlation_matrix,
+                ml_result
+                )
         analysis = {
             "summary_statistics": summary_statistics,
             "correlation_matrix": correlation_matrix_dict,
@@ -193,7 +200,7 @@ def upload_file():
                 f"(Correlation = {strongest_correlation['correlation']})."
             )
         charts = generate_all_visualizations(df)
-        return jsonify({
+        return jsonify( {
             "success": True,
             "filename": filename,
             "dataset_info": dataset_info,
@@ -203,8 +210,9 @@ def upload_file():
             "insights": insights,
             "visualizations": charts,
             "preprocessing": preprocessing_report,
-            "machine_learning": ml_result
-},
+            "machine_learning": ml_result,
+            "ai_insights": ai_insights,
+}
         )
 
     except Exception as e:

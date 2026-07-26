@@ -428,8 +428,14 @@ def analyze_machine_learning(context):
             performance = "Good"
             confidence = "Moderate"
 
+
         else:
             performance = "Needs Improvement"
+    elif algorithm.lower() == "k-means":
+
+          performance = "Clustering Model"
+
+          confidence = "Not Applicable"
 
     return {
 
