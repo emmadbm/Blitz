@@ -383,3 +383,363 @@ def analyze_correlations(context):
     )
 
     return findings
+
+def analyze_machine_learning(context):
+    """
+    Evaluates machine learning performance and extracts
+    meaningful observations.
+    """
+
+    ml = context.get("machine_learning")
+
+    if not ml:
+        return None
+
+    algorithm = ml.get("algorithm", "Unknown Model")
+    metrics = ml.get("metrics", {})
+
+    performance = "Unknown"
+    confidence = "Low"
+
+    if "Accuracy" in metrics:
+
+        accuracy = metrics["Accuracy"]
+
+        if accuracy >= 0.90:
+            performance = "Excellent"
+            confidence = "High"
+
+        elif accuracy >= 0.80:
+            performance = "Good"
+            confidence = "Moderate"
+
+        else:
+            performance = "Needs Improvement"
+
+    elif "R2 Score" in metrics:
+
+        r2 = metrics["R2 Score"]
+
+        if r2 >= 0.85:
+            performance = "Excellent"
+            confidence = "High"
+
+        elif r2 >= 0.70:
+            performance = "Good"
+            confidence = "Moderate"
+
+        else:
+            performance = "Needs Improvement"
+
+    return {
+
+        "algorithm": algorithm,
+
+        "metrics": metrics,
+
+        "performance": performance,
+
+        "confidence": confidence
+
+    }
+
+
+def generate_key_findings(context):
+    """
+    Generates the most important observations from the dataset.
+    """
+
+    findings = []
+
+    dataset = analyze_dataset(context)
+
+    quality = analyze_data_quality(context)
+
+    correlations = analyze_correlations(context)
+
+    ml = analyze_machine_learning(context)
+
+    # Dataset Size
+
+    findings.append(
+
+        f"The dataset contains {dataset['rows']} records and "
+        f"{dataset['columns']} features, providing a "
+        f"{dataset['dataset_size'].lower()} sized dataset "
+        f"for analysis."
+
+    )
+
+    # Data Quality
+
+    findings.append(
+
+        f"The overall quality of the dataset is "
+        f"{quality['quality'].lower()} after preprocessing."
+
+    )
+
+    # Correlations
+
+    if correlations:
+
+        strongest = correlations[0]
+
+        findings.append(
+
+            f"The strongest relationship was observed between "
+            f"{strongest['feature1']} and "
+            f"{strongest['feature2']} "
+            f"(correlation = {strongest['correlation']})."
+
+        )
+
+    # Machine Learning
+
+    if ml:
+
+        findings.append(
+
+            f"{ml['algorithm']} demonstrated "
+            f"{ml['performance'].lower()} predictive performance."
+
+        )
+
+    return findings
+
+
+def generate_recommendations(context):
+    """
+    Generates recommendations based on findings.
+    """
+
+    recommendations = []
+
+    quality = analyze_data_quality(context)
+
+    correlations = analyze_correlations(context)
+
+    ml = analyze_machine_learning(context)
+
+    # Missing Values
+
+    if quality["remaining_missing"] > 0:
+
+        recommendations.append(
+
+            "Additional preprocessing is recommended to handle the remaining missing values."
+
+        )
+
+    # Outliers
+
+    if quality["total_outliers"] > 20:
+
+        recommendations.append(
+
+            "Review the detected outliers before training predictive models, as they may influence model performance."
+
+        )
+
+    # Correlations
+
+    if correlations:
+
+        strongest = correlations[0]
+
+        if strongest["direction"] == "Positive":
+
+            recommendations.append(
+
+                f"Leverage the strong relationship between "
+                f"{strongest['feature1']} and "
+                f"{strongest['feature2']} during decision making."
+
+            )
+
+        else:
+
+            recommendations.append(
+
+                f"Investigate the negative relationship between "
+                f"{strongest['feature1']} and "
+                f"{strongest['feature2']} to understand its impact."
+
+            )
+
+    # Machine Learning
+
+    if ml:
+
+        if ml["performance"] == "Excellent":
+
+            recommendations.append(
+
+                "The trained model demonstrates strong predictive capability and can be considered for future predictions."
+
+            )
+
+        elif ml["performance"] == "Needs Improvement":
+
+            recommendations.append(
+
+                "Consider feature engineering or experimenting with alternative algorithms to improve model performance."
+
+            )
+
+    return recommendations
+def generate_executive_summary(context):
+    """
+    Generates a professional executive summary based on
+    the overall analysis.
+    """
+
+    dataset = analyze_dataset(context)
+    quality = analyze_data_quality(context)
+    correlations = analyze_correlations(context)
+    ml = analyze_machine_learning(context)
+
+    summary = []
+
+    # Dataset
+
+    summary.append(
+
+        f"The uploaded dataset contains {dataset['rows']} records "
+        f"and {dataset['columns']} features, making it a "
+        f"{dataset['dataset_size'].lower()} dataset suitable for "
+        "exploratory analysis and predictive modeling."
+
+    )
+
+    # Data Quality
+
+    if quality["quality"] == "Excellent":
+
+        summary.append(
+
+            "The dataset demonstrates excellent quality after preprocessing. "
+            "Missing values have been handled successfully and duplicate "
+            "records do not affect the analysis."
+
+        )
+
+    elif quality["quality"] == "Good":
+
+        summary.append(
+
+            "The dataset is generally clean and suitable for analysis, "
+            "although minor preprocessing considerations remain."
+
+        )
+
+    else:
+
+        summary.append(
+
+            "The dataset requires additional preprocessing before reliable "
+            "analysis and modeling can be performed."
+
+        )
+
+    # Correlation
+
+    if correlations:
+
+        strongest = correlations[0]
+
+        summary.append(
+
+            f"The strongest relationship exists between "
+            f"{strongest['feature1']} and "
+            f"{strongest['feature2']}, indicating an important "
+            "pattern within the dataset."
+
+        )
+
+    # Machine Learning
+
+    if ml:
+
+        summary.append(
+
+            f"The {ml['algorithm']} model achieved "
+            f"{ml['performance'].lower()} predictive performance, "
+            "indicating that meaningful relationships exist within "
+            "the available features."
+
+        )
+
+    return " ".join(summary)
+
+
+def generate_ai_insights(
+        df,
+        preprocessing_report,
+        statistics,
+        correlation_matrix,
+        ml_results
+):
+    """
+    Main AI Insight Generation Controller.
+    """
+
+    context = collect_context(
+        df,
+        preprocessing_report,
+        statistics,
+        correlation_matrix,
+        ml_results
+    )
+
+    dataset_analysis = analyze_dataset(
+        context
+    )
+
+    quality_analysis = analyze_data_quality(
+        context
+    )
+
+    statistics_analysis = analyze_statistics(
+        context
+    )
+
+    correlation_analysis = analyze_correlations(
+        context
+    )
+
+    ml_analysis = analyze_machine_learning(
+        context
+    )
+
+    key_findings = generate_key_findings(
+        context
+    )
+
+    recommendations = generate_recommendations(
+        context
+    )
+
+    executive_summary = generate_executive_summary(
+        context
+    )
+
+    return {
+
+        "dataset_analysis": dataset_analysis,
+
+        "data_quality": quality_analysis,
+
+        "statistics_analysis": statistics_analysis,
+
+        "correlation_analysis": correlation_analysis,
+
+        "machine_learning_analysis": ml_analysis,
+
+        "executive_summary": executive_summary,
+
+        "key_findings": key_findings,
+
+        "recommendations": recommendations
+
+    }
