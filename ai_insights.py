@@ -547,33 +547,9 @@ def generate_recommendations(context):
 
         )
 
-    # Correlations
+    
 
-    if correlations:
-
-        strongest = correlations[0]
-
-        if strongest["direction"] == "Positive":
-
-            recommendations.append(
-
-                f"Leverage the strong relationship between "
-                f"{strongest['feature1']} and "
-                f"{strongest['feature2']} during decision making."
-
-            )
-
-        else:
-
-            recommendations.append(
-
-                f"Investigate the negative relationship between "
-                f"{strongest['feature1']} and "
-                f"{strongest['feature2']} to understand its impact."
-
-            )
-
-    # Machine Learning
+ 
 
     if ml:
 
@@ -607,7 +583,7 @@ def generate_executive_summary(context):
 
     summary = []
 
-    # Dataset
+    
 
     summary.append(
 
@@ -618,7 +594,7 @@ def generate_executive_summary(context):
 
     )
 
-    # Data Quality
+    
 
     if quality["quality"] == "Excellent":
 
