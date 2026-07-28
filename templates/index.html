@@ -35,22 +35,35 @@
 
         <!-- Upload Section -->
 
-        <section class="upload-section">
+        <!-- Upload Section -->
 
-            <div class="upload-box">
+<section class="upload-section">
 
-                <h2>📁 Upload Dataset</h2>
+    <div class="upload-box">
 
-                <p>Drag & Drop your CSV or Excel file</p>
+        <div class="upload-icon">
+            📂
+        </div>
 
-                <input
-                    type="file"
-                    id="datasetFile"
-                    accept=".csv,.xlsx,.xls">
+        <h2>Upload Dataset</h2>
 
-            </div>
+        <p id="fileName">
+            Drag & Drop your CSV or Excel file
+        </p>
 
-        </section>
+        <label for="datasetFile" class="upload-btn">
+            Browse Files
+        </label>
+
+        <input
+            type="file"
+            id="datasetFile"
+            accept=".csv,.xlsx,.xls"
+            hidden>
+
+    </div>
+
+</section>
 
 
         <!-- Controls -->
@@ -81,15 +94,15 @@
 
             <div class="input-group">
 
-                <label>Target Column</label>
+    <label>Target Column</label>
 
-                <select id="targetColumn">
+    <select id="targetColumn">
 
-                    <option value="">Select Target</option>
+        <option value="">Select Target</option>
 
-                </select>
+    </select>
 
-            </div>
+</div>
 
         </section>
 
