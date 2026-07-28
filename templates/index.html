@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Blitz | AI Data Analytics</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+
+        <header>
+
+            <h1>⚡ Blitz</h1>
+
+            <p>AI Powered Data Analytics Platform</p>
+
+        </header>
+
+
+        <!-- Upload Section -->
+
+        <section class="upload-section">
+
+            <div class="upload-box">
+
+                <h2>📁 Upload Dataset</h2>
+
+                <p>Drag & Drop your CSV or Excel file</p>
+
+                <input
+                    type="file"
+                    id="datasetFile"
+                    accept=".csv,.xlsx,.xls">
+
+            </div>
+
+        </section>
+
+
+        <!-- Controls -->
+
+        <section class="controls">
+
+            <div class="input-group">
+
+                <label>Algorithm</label>
+
+                <select id="algorithm">
+
+                    <option value="">Select Algorithm</option>
+
+                    <option value="linear regression">Linear Regression</option>
+
+                    <option value="logistic regression">Logistic Regression</option>
+
+                    <option value="decision tree">Decision Tree</option>
+
+                    <option value="random forest">Random Forest</option>
+
+                    <option value="k-means">K-Means</option>
+
+                </select>
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Target Column</label>
+
+                <select id="targetColumn">
+
+                    <option value="">Select Target</option>
+
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <!-- Analyze Button -->
+
+        <section class="analyze">
+
+            <button id="analyzeBtn">
+
+                Analyze Dataset
+
+            </button>
+
+        </section>
+
+
+        <!-- Loading -->
+
+        <section id="loading" class="hidden">
+
+            <p>Analyzing dataset...</p>
+
+        </section>
+
+
+        <!-- Results -->
+
+        <section id="results">
+
+        </section>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>

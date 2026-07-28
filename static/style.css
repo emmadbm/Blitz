@@ -1,0 +1,228 @@
+
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+
+body{
+
+    background:#0f172a;
+    color:#ffffff;
+    min-height:100vh;
+
+}
+
+
+.container{
+
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+    padding:40px 20px;
+
+}
+
+
+
+header{
+
+    text-align:center;
+    margin-bottom:50px;
+
+}
+
+header h1{
+
+    font-size:3rem;
+    color:#3b82f6;
+    font-weight:700;
+
+}
+
+header p{
+
+    color:#94a3b8;
+    font-size:1.1rem;
+    margin-top:10px;
+
+}
+
+
+
+.upload-box{
+
+    background:#1e293b;
+    border:2px dashed #3b82f6;
+    border-radius:18px;
+
+    padding:40px;
+
+    text-align:center;
+
+    transition:0.3s;
+
+}
+
+.upload-box:hover{
+
+    border-color:#60a5fa;
+    transform:translateY(-3px);
+
+}
+
+.upload-box h2{
+
+    margin-bottom:10px;
+
+}
+
+.upload-box p{
+
+    color:#94a3b8;
+    margin-bottom:20px;
+
+}
+
+.upload-box input{
+
+    color:white;
+
+}
+
+
+.controls{
+
+    display:flex;
+    gap:30px;
+
+    justify-content:center;
+
+    margin-top:40px;
+
+    flex-wrap:wrap;
+
+}
+
+.input-group{
+
+    display:flex;
+    flex-direction:column;
+
+    width:300px;
+
+}
+
+.input-group label{
+
+    margin-bottom:10px;
+
+    font-weight:500;
+
+}
+
+.input-group select{
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#334155;
+
+    color:white;
+
+    outline:none;
+
+    font-size:15px;
+
+}
+
+
+.analyze{
+
+    display:flex;
+
+    justify-content:center;
+
+    margin-top:40px;
+
+}
+
+#analyzeBtn{
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    padding:15px 45px;
+
+    border-radius:12px;
+
+    font-size:17px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+#analyzeBtn:hover{
+
+    background:#3b82f6;
+
+    transform:scale(1.04);
+
+}
+
+
+
+.hidden{
+
+    display:none;
+
+}
+
+#loading{
+
+    text-align:center;
+
+    margin-top:30px;
+
+    font-size:18px;
+
+}
+
+
+
+#results{
+
+    margin-top:50px;
+
+}
+
+
+
+@media(max-width:768px){
+
+    header h1{
+
+        font-size:2.2rem;
+
+    }
+
+    .controls{
+
+        flex-direction:column;
+
+        align-items:center;
+
+    }
+
+}

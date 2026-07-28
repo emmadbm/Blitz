@@ -11,7 +11,7 @@ main = Blueprint("main", __name__)
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 
-@main.route("/")
+@main.route("/api/home")
 def home():
     return jsonify({
         "message": "THIS IS MY NEW API"

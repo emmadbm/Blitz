@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.register_blueprint(main)
 
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
 if __name__ == "__main__":
