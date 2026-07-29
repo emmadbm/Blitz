@@ -1,81 +1,74 @@
 // ==========================
-// Get HTML Elements
+// BLITZ - Frontend Script
 // ==========================
 
+// Elements
 const fileInput = document.getElementById("datasetFile");
+const fileName = document.getElementById("fileName");
 const targetColumn = document.getElementById("targetColumn");
+const algorithm = document.getElementById("algorithm");
 const analyzeBtn = document.getElementById("analyzeBtn");
+const loading = document.getElementById("loading");
+const results = document.getElementById("results");
 
-
+// ==========================
+// File Upload
+// ==========================
 
 fileInput.addEventListener("change", function () {
 
     const file = this.files[0];
 
-    if (!file) {
-        return;
+    if (!file) return;
+
+    // Show selected filename
+    fileName.textContent = file.name;
+
+    // Clear previous target options
+    targetColumn.innerHTML =
+        '<option value="">Select Target</option>';
+
+    // CSV Header Detection
+    if (file.name.toLowerCase().endsWith(".csv")) {
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            const csv = e.target.result;
+
+            const firstLine = csv.split(/\r?\n/)[0];
+
+            // Detect delimiter
+            const delimiter = firstLine.includes(";") ? ";" : ",";
+
+            const headers = firstLine.split(delimiter);
+
+            headers.forEach(header => {
+
+                const option = document.createElement("option");
+
+                option.value = header.trim();
+                option.textContent = header.trim();
+
+                targetColumn.appendChild(option);
+
+            });
+
+            console.log("Detected Columns:", headers);
+
+        };
+
+        reader.readAsText(file);
+
     }
 
-    console.log("Selected File:", file.name);
+    // Excel file
+    else {
 
-    
-    const uploadText = document.querySelector(".upload-box p");
+        alert("Excel file selected.\nTarget column detection will be available after backend upload.");
 
-    uploadText.textContent = file.name;
-
-   
-    if (!file.name.endsWith(".csv")) {
-
-        targetColumn.innerHTML =
-            "<option>Select Target</option>";
-
-        alert("Target column detection currently supports CSV files only.");
-
-        return;
     }
-
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-
-        const csv = event.target.result;
-
-        
-        const firstLine = csv.split("\n")[0];
-
-        // Split into column names
-        const columns = firstLine.split(",");
-
-        // Clear previous options
-        targetColumn.innerHTML = "";
-
-        // Add default option
-        const defaultOption = document.createElement("option");
-
-        defaultOption.textContent = "Select Target";
-
-        defaultOption.value = "";
-
-        targetColumn.appendChild(defaultOption);
-
-        // Add all columns
-        columns.forEach(column => {
-
-            const option = document.createElement("option");
-
-            option.value = column.trim();
-
-            option.textContent = column.trim();
-
-            targetColumn.appendChild(option);
-
-        });
-
-        console.log("Columns:", columns);
-
-    };
-
-    reader.readAsText(file);
 
 });
 
@@ -87,109 +80,103 @@ analyzeBtn.addEventListener("click", function () {
 
     const file = fileInput.files[0];
 
-    const target = targetColumn.value;
-
-    const algorithm =
-        document.getElementById("algorithm").value;
-
     if (!file) {
 
         alert("Please upload a dataset.");
-
         return;
 
     }
 
-    if (!algorithm) {
+    if (!algorithm.value) {
 
         alert("Please select an algorithm.");
-
         return;
 
     }
 
-    if (!target) {
+    if (!targetColumn.value) {
 
         alert("Please select a target column.");
-
         return;
 
     }
 
-    console.log("Ready to Analyze");
+    const formData = new FormData();
 
-    console.log("File:", file.name);
+formData.append("file", file);
+formData.append("algorithm", algorithm.value);
+formData.append("target_column", targetColumn.value);
 
-    console.log("Algorithm:", algorithm);
+fetch("/upload", {
+    method: "POST",
+    body: formData
+})
 
-    console.log("Target:", target);
+.then(response => response.json())
 
-    // Flask API connection comes next.
+.then(data => {
 
-});// ============================
-// Elements
-// ============================
+    loading.classList.add("hidden");
 
-const fileInput = document.getElementById("datasetFile");
-const targetColumn = document.getElementById("targetColumn");
-const fileName = document.getElementById("fileName");
+    console.log(data);
 
-// ============================
-// File Upload
-// ============================
+    if (!data.success) {
 
-fileInput.addEventListener("change", function () {
-
-    const file = this.files[0];
-
-    if (!file) return;
-
-    // Show filename
-
-    fileName.textContent = file.name;
-
-    // Only CSV header detection for now
-
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-
-        targetColumn.innerHTML =
-            '<option value="">Select Target</option>';
-
+        alert(data.message);
         return;
 
     }
 
-    const reader = new FileReader();
+    results.innerHTML = `
 
-    reader.onload = function (event) {
+        <div class="result-card">
 
-        const csv = event.target.result;
+            <h2>Analysis Complete ✅</h2>
 
-        const firstLine = csv.split(/\r?\n/)[0];
+            <br>
 
-        // Detect delimiter
+            <h3>Dataset Information</h3>
 
-        const delimiter = firstLine.includes(";") ? ";" : ",";
+            <p><b>Rows:</b> ${data.dataset_info.rows}</p>
 
-        const headers = firstLine.split(delimiter);
+            <p><b>Columns:</b> ${data.dataset_info.columns}</p>
 
-        targetColumn.innerHTML =
-            '<option value="">Select Target</option>';
+            <br>
 
-        headers.forEach(header => {
+            <h3>Health Report</h3>
 
-            const option = document.createElement("option");
+            <p><b>Status:</b> ${data.health_report.status}</p>
 
-            option.value = header.trim();
+            <p><b>Score:</b> ${data.health_report.health_score}/100</p>
 
-            option.textContent = header.trim();
+            <br>
 
-            targetColumn.appendChild(option);
+            <h3>Insights</h3>
 
-        });
+            <ul>
 
-    };
+                ${data.insights.map(i => `<li>${i}</li>`).join("")}
 
-    reader.readAsText(file);
+            </ul>
 
-});
+            <br>
+
+            <h3>AI Executive Summary</h3>
+
+            <p>${data.ai_insights.executive_summary}</p>
+
+        </div>
+
+    `;
+
+})
+
+.catch(error => {
+
+    loading.classList.add("hidden");
+
+    console.error(error);
+
+    alert("Error connecting to backend.");
+
+})})
