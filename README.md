@@ -175,7 +175,7 @@ Blitz aims to provide an end-to-end analytics platform that combines data prepro
 ---
 
 ##  Developed By
- Bhumika Mehra
+ 
 
 **Bhumika Mehra**
 
