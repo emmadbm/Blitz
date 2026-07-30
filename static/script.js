@@ -21,14 +21,11 @@ fileInput.addEventListener("change", function () {
 
     if (!file) return;
 
-    // Show selected filename
     fileName.textContent = file.name;
 
-    // Clear previous target options
     targetColumn.innerHTML =
         '<option value="">Select Target</option>';
 
-    // CSV Header Detection
     if (file.name.toLowerCase().endsWith(".csv")) {
 
         const reader = new FileReader();
@@ -39,7 +36,6 @@ fileInput.addEventListener("change", function () {
 
             const firstLine = csv.split(/\r?\n/)[0];
 
-            // Detect delimiter
             const delimiter = firstLine.includes(";") ? ";" : ",";
 
             const headers = firstLine.split(delimiter);
@@ -63,20 +59,19 @@ fileInput.addEventListener("change", function () {
 
     }
 
-    // Excel file
     else {
 
-        alert("Excel file selected.\nTarget column detection will be available after backend upload.");
+        alert("Excel detected. Target columns will be loaded after upload.");
 
     }
 
 });
 
 // ==========================
-// Analyze Button
+// Analyze Dataset
 // ==========================
 
-analyzeBtn.addEventListener("click", function () {
+analyzeBtn.addEventListener("click", async function () {
 
     const file = fileInput.files[0];
 
@@ -101,82 +96,95 @@ analyzeBtn.addEventListener("click", function () {
 
     }
 
+    loading.classList.remove("hidden");
+    results.innerHTML = "";
+
     const formData = new FormData();
 
-formData.append("file", file);
-formData.append("algorithm", algorithm.value);
-formData.append("target_column", targetColumn.value);
+    formData.append("file", file);
+    formData.append("algorithm", algorithm.value);
+    formData.append("target_column", targetColumn.value);
 
-fetch("/upload", {
-    method: "POST",
-    body: formData
-})
+    try {
 
-.then(response => response.json())
+        const response = await fetch("/upload", {
 
-.then(data => {
+            method: "POST",
+            body: formData
 
-    loading.classList.add("hidden");
+        });
 
-    console.log(data);
+        console.log("Status:", response.status);
 
-    if (!data.success) {
+        const text = await response.text();
 
-        alert(data.message);
-        return;
+        console.log(text);
+
+        const data = JSON.parse(text);
+
+        loading.classList.add("hidden");
+
+        if (!data.success) {
+
+            alert(data.message);
+            return;
+
+        }
+
+        const summary =
+            data.ai_insights?.executive_summary ??
+            "No AI Executive Summary Available.";
+
+        results.innerHTML = `
+
+            <div class="result-card">
+
+                <h2>Analysis Complete ✅</h2>
+
+                <br>
+
+                <h3>Dataset Information</h3>
+
+                <p><b>Rows:</b> ${data.dataset_info.rows}</p>
+                <p><b>Columns:</b> ${data.dataset_info.columns}</p>
+
+                <br>
+
+                <h3>Health Report</h3>
+
+                <p><b>Status:</b> ${data.health_report.status}</p>
+                <p><b>Score:</b> ${data.health_report.health_score}/100</p>
+
+                <br>
+
+                <h3>Insights</h3>
+
+                <ul>
+
+                    ${data.insights.map(item => `<li>${item}</li>`).join("")}
+
+                </ul>
+
+                <br>
+
+                <h3>AI Executive Summary</h3>
+
+                <p>${summary}</p>
+
+            </div>
+
+        `;
 
     }
 
-    results.innerHTML = `
+    catch (error) {
 
-        <div class="result-card">
+        loading.classList.add("hidden");
 
-            <h2>Analysis Complete ✅</h2>
+        console.error(error);
 
-            <br>
+        alert(error.message);
 
-            <h3>Dataset Information</h3>
+    }
 
-            <p><b>Rows:</b> ${data.dataset_info.rows}</p>
-
-            <p><b>Columns:</b> ${data.dataset_info.columns}</p>
-
-            <br>
-
-            <h3>Health Report</h3>
-
-            <p><b>Status:</b> ${data.health_report.status}</p>
-
-            <p><b>Score:</b> ${data.health_report.health_score}/100</p>
-
-            <br>
-
-            <h3>Insights</h3>
-
-            <ul>
-
-                ${data.insights.map(i => `<li>${i}</li>`).join("")}
-
-            </ul>
-
-            <br>
-
-            <h3>AI Executive Summary</h3>
-
-            <p>${data.ai_insights.executive_summary}</p>
-
-        </div>
-
-    `;
-
-})
-
-.catch(error => {
-
-    loading.classList.add("hidden");
-
-    console.error(error);
-
-    alert("Error connecting to backend.");
-
-})})
+});

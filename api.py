@@ -1,4 +1,6 @@
 import os
+
+import traceback
 import pandas as pd
 from flask import Blueprint, jsonify, request
 from werkzeug.utils import secure_filename
@@ -214,10 +216,10 @@ def upload_file():
             "ai_insights": ai_insights,
 }
         )
-
     except Exception as e:
+      traceback.print_exc()
 
-        return jsonify({
-            "success": False,
-            "message": f"Error processing the file: {str(e)}"
-        }), 500
+      return jsonify({
+        "success": False,
+        "message": str(e)
+       }), 500
