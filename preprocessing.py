@@ -1,25 +1,9 @@
 import pandas as pd
 import numpy as np
-
-try:
-    from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder  # type: ignore[import-not-found]
-except ImportError:  # pragma: no cover - fallback for environments without scikit-learn
-    class StandardScaler:
-        def fit_transform(self, X):
-            return X
-
-    class MinMaxScaler:
-        def fit_transform(self, X):
-            return X
-
-    class LabelEncoder:
-        def fit_transform(self, y):
-            return y
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 
 
-# ==========================================
-# Remove Duplicate Rows
-# ==========================================
+
 
 def remove_duplicates(df):
     """
@@ -40,9 +24,7 @@ def remove_duplicates(df):
     }
 
 
-# ==========================================
-# Handle Missing Values
-# ==========================================
+
 
 def handle_missing_values(df, strategy="mean"):
     """
@@ -91,10 +73,6 @@ def handle_missing_values(df, strategy="mean"):
     }
 
 
-# ==========================================
-# Detect Outliers (IQR Method)
-# ==========================================
-
 def detect_outliers(df):
     """
     Detects outliers using the IQR method.
@@ -123,9 +101,6 @@ def detect_outliers(df):
     return report
 
 
-# ==========================================
-# Standardization / Normalization
-# ==========================================
 
 def scale_features(df, method="standard"):
     """
@@ -156,9 +131,6 @@ def scale_features(df, method="standard"):
     return df
 
 
-# ==========================================
-# Encode Categorical Variables
-# ==========================================
 
 def encode_features(df, method="onehot"):
     """
@@ -193,9 +165,7 @@ def encode_features(df, method="onehot"):
     return df
 
 
-# ==========================================
-# Complete Preprocessing Pipeline
-# ==========================================
+
 
 def preprocess_dataset(
         df,
@@ -204,10 +174,7 @@ def preprocess_dataset(
         encoding_method="onehot",
         remove_duplicate_rows=True
 ):
-    """
-    Complete preprocessing pipeline.
-    """
-
+  
     report = {}
 
     # Remove duplicates
@@ -230,14 +197,14 @@ def preprocess_dataset(
         df,
         method=scaling_method
     )
-    report["scaling"] = scaling_method
+    report["scaling"] = {"method": scaling_method}
 
     # Encode categorical features
     df = encode_features(
         df,
         method=encoding_method
     )
-    report["encoding"] = encoding_method
+    report["encoding"] = {"method": encoding_method}
 
     report["final_shape"] = {
         "rows": df.shape[0],
