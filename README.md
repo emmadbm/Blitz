@@ -1,4 +1,4 @@
-# ⚡ Blitz – AI-Powered Data Analytics Platform
+#  Blitz – AI-Powered Data Analytics Platform
 
 Blitz is an AI-powered data analytics platform built with Python and Flask that enables users to upload datasets, perform exploratory data analysis, preprocess data, train machine learning models, and gain meaningful insights—all through a single application.
 
@@ -6,9 +6,9 @@ The goal of Blitz is to simplify the complete data analysis workflow while makin
 
 ---
 
-## 🚀 Features
+##  Features
 
-### 📂 Dataset Upload
+###  Dataset Upload
 - Upload CSV and Excel files
 - Automatic delimiter detection
 - Dataset validation
@@ -16,7 +16,7 @@ The goal of Blitz is to simplify the complete data analysis workflow while makin
 
 ---
 
-### 📊 Data Exploration
+### Data Exploration
 - Dataset overview
 - Shape of the dataset
 - Data types
@@ -26,7 +26,7 @@ The goal of Blitz is to simplify the complete data analysis workflow while makin
 
 ---
 
-### ❤️ Dataset Health Report
+###  Dataset Health Report
 - Completeness analysis
 - Missing value percentage
 - Duplicate record analysis
@@ -34,7 +34,7 @@ The goal of Blitz is to simplify the complete data analysis workflow while makin
 
 ---
 
-### 📈 Data Visualization
+###  Data Visualization
 Automatically generates visualizations including:
 
 - Histograms
@@ -45,7 +45,7 @@ Visualizations are saved and can be viewed through the application.
 
 ---
 
-### 🧹 Data Preprocessing
+###  Data Preprocessing
 Automated preprocessing pipeline including:
 
 - Duplicate removal
@@ -57,7 +57,7 @@ Automated preprocessing pipeline including:
 
 ---
 
-### 🤖 Machine Learning
+### Machine Learning
 Supports multiple machine learning algorithms:
 
 #### Supervised Learning
@@ -79,7 +79,7 @@ The module provides:
 
 ---
 
-### 💡 Automated Insights
+### Automated Insights
 Generate statistical insights from uploaded datasets including:
 
 - Correlation analysis
@@ -89,7 +89,7 @@ Generate statistical insights from uploaded datasets including:
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Backend
 - Python
@@ -108,7 +108,7 @@ Generate statistical insights from uploaded datasets including:
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 Blitz/
@@ -129,7 +129,7 @@ Blitz/
 
 ---
 
-## 📌 Workflow
+## Workflow
 
 ```text
 Upload Dataset
@@ -158,23 +158,24 @@ Insights
 
 ---
 
-## 🔄 Upcoming Features
+## Upcoming Features
 
-- 🤖 AI Insight Generation using Large Language Models
-- 📊 Interactive Analytics Dashboard
+- AI Insight Generation using Large Language Models
+- Interactive Analytics Dashboard
 - Export reports (PDF/Excel)
 - User authentication
 - Dataset history
 
 ---
 
-## 🎯 Project Goal
+##  Project Goal
 
 Blitz aims to provide an end-to-end analytics platform that combines data preprocessing, visualization, machine learning, and AI-powered insights into a single, easy-to-use application. It is designed to help users quickly understand their data, build predictive models, and make informed decisions.
 
 ---
 
-## 👩‍💻 Developed By
+##  Developed By
+ 
 
 **Bhumika Mehra**
 
