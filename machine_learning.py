@@ -1,9 +1,18 @@
 import pandas as pd
 
-from sklearn.model_selection import train_test_split
+from pandas.api.types import (
+    is_numeric_dtype,
+    is_object_dtype,
+    is_categorical_dtype
+)
 
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+from sklearn.linear_model import (
+    LinearRegression,
+    LogisticRegression
+)
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -21,19 +30,112 @@ from sklearn.metrics import (
     silhouette_score
 )
 
+SUPPORTED_ALGORITHMS = {
+    "linear regression",
+    "logistic regression",
+    "decision tree",
+    "random forest",
+    "k means"
+}
+
+
+def validate_algorithm(algorithm):
+    """
+    Validates selected algorithm.
+    """
+
+    if algorithm is None:
+
+        raise ValueError(
+            "Please select an algorithm."
+        )
+
+    algorithm = (
+        algorithm
+        .strip()
+        .lower()
+        .replace("-", " ")
+        .replace("_", " ")
+    )
+
+    if algorithm not in SUPPORTED_ALGORITHMS:
+
+        raise ValueError(
+            f"Unsupported algorithm: {algorithm}"
+        )
+
+    return algorithm
+
+
+def validate_target(df, target_column):
+    """
+    Validates target column.
+    """
+
+    if target_column is None:
+
+        raise ValueError(
+            "Target column is required."
+        )
+
+    if target_column not in df.columns:
+
+        raise ValueError(
+            f"Target column '{target_column}' not found."
+        )
+
+
+def detect_problem_type(y):
+    """
+    Detects Regression or Classification.
+    """
+
+    if (
+        is_object_dtype(y)
+        or is_categorical_dtype(y)
+    ):
+
+        return "classification"
+
+    if (
+        is_numeric_dtype(y)
+        and y.nunique() <= 10
+    ):
+
+        return "classification"
+
+    return "regression"
+
 
 def prepare_dataset(df, target_column):
     """
-    Separates features and target column.
+    Splits dataset into features and target.
     """
 
-    if target_column not in df.columns:
-        raise ValueError(f"Target column '{target_column}' not found.")
+    validate_target(
+        df,
+        target_column
+    )
 
-    X = df.drop(columns=[target_column])
+    X = df.drop(
+        columns=[target_column]
+    )
+
     y = df[target_column]
 
-    X = pd.get_dummies(X, drop_first=True)
+    X = pd.get_dummies(
+        X,
+        drop_first=True
+    )
+
+    if (
+        is_object_dtype(y)
+        or is_categorical_dtype(y)
+    ):
+
+        encoder = LabelEncoder()
+
+        y = encoder.fit_transform(y)
 
     return X, y
 
@@ -44,9 +146,6 @@ def split_dataset(
         test_size=0.2,
         random_state=42
 ):
-    """
-    Splits dataset into train and test sets.
-    """
 
     return train_test_split(
         X,
@@ -54,14 +153,12 @@ def split_dataset(
         test_size=test_size,
         random_state=random_state
     )
-
-
 def evaluate_regression(
         y_true,
         predictions
 ):
     """
-    Returns regression metrics.
+    Evaluates regression models.
     """
 
     mse = mean_squared_error(
@@ -69,7 +166,11 @@ def evaluate_regression(
         predictions
     )
 
+    rmse = mse ** 0.5
+
     return {
+
+        "task": "Regression",
 
         "MAE": round(
             mean_absolute_error(
@@ -85,7 +186,7 @@ def evaluate_regression(
         ),
 
         "RMSE": round(
-            mse ** 0.5,
+            rmse,
             4
         ),
 
@@ -105,10 +206,12 @@ def evaluate_classification(
         predictions
 ):
     """
-    Returns classification metrics.
+    Evaluates classification models.
     """
 
     return {
+
+        "task": "Classification",
 
         "Accuracy": round(
             accuracy_score(
@@ -156,30 +259,41 @@ def get_feature_importance(
         feature_names
 ):
     """
-    Returns feature importance for tree models.
+    Returns sorted feature importance
+    for tree-based models.
     """
 
-    if not hasattr(model, "feature_importances_"):
-        return {}
-
-    importance = {}
-
-    for feature, value in zip(
-            feature_names,
-            model.feature_importances_
+    if not hasattr(
+            model,
+            "feature_importances_"
     ):
 
-        importance[feature] = round(
-            float(value),
+        return {}
+
+    importance = {
+
+        feature: round(
+            float(score),
             4
         )
+
+        for feature, score in zip(
+            feature_names,
+            model.feature_importances_
+        )
+
+    }
 
     importance = dict(
 
         sorted(
+
             importance.items(),
+
             key=lambda item: item[1],
+
             reverse=True
+
         )
 
     )
@@ -206,15 +320,21 @@ def train_linear_regression(
         X_test
     )
 
-    metrics = evaluate_regression(
-        y_test,
-        predictions
-    )
-
     return {
+
+        "success": True,
+
         "algorithm": "Linear Regression",
-        "metrics": metrics,
+
+        "task": "Regression",
+
+        "metrics": evaluate_regression(
+            y_test,
+            predictions
+        ),
+
         "predictions": predictions.tolist()
+
     }
 
 
@@ -241,15 +361,21 @@ def train_logistic_regression(
         X_test
     )
 
-    metrics = evaluate_classification(
-        y_test,
-        predictions
-    )
-
     return {
+
+        "success": True,
+
         "algorithm": "Logistic Regression",
-        "metrics": metrics,
+
+        "task": "Classification",
+
+        "metrics": evaluate_classification(
+            y_test,
+            predictions
+        ),
+
         "predictions": predictions.tolist()
+
     }
 
 
@@ -276,21 +402,26 @@ def train_decision_tree(
         X_test
     )
 
-    metrics = evaluate_classification(
-        y_test,
-        predictions
-    )
-
-    feature_importance = get_feature_importance(
-        model,
-        X_train.columns
-    )
-
     return {
+
+        "success": True,
+
         "algorithm": "Decision Tree",
-        "metrics": metrics,
-        "feature_importance": feature_importance,
+
+        "task": "Classification",
+
+        "metrics": evaluate_classification(
+            y_test,
+            predictions
+        ),
+
+        "feature_importance": get_feature_importance(
+            model,
+            X_train.columns
+        ),
+
         "predictions": predictions.tolist()
+
     }
 
 
@@ -318,21 +449,26 @@ def train_random_forest(
         X_test
     )
 
-    metrics = evaluate_classification(
-        y_test,
-        predictions
-    )
-
-    feature_importance = get_feature_importance(
-        model,
-        X_train.columns
-    )
-
     return {
+
+        "success": True,
+
         "algorithm": "Random Forest",
-        "metrics": metrics,
-        "feature_importance": feature_importance,
+
+        "task": "Classification",
+
+        "metrics": evaluate_classification(
+            y_test,
+            predictions
+        ),
+
+        "feature_importance": get_feature_importance(
+            model,
+            X_train.columns
+        ),
+
         "predictions": predictions.tolist()
+
     }
 
 
@@ -341,7 +477,7 @@ def train_kmeans(
         clusters=3
 ):
     """
-    Train K-Means clustering model.
+    Train K-Means Clustering model.
     """
 
     model = KMeans(
@@ -360,14 +496,48 @@ def train_kmeans(
     )
 
     return {
+
+        "success": True,
+
         "algorithm": "K-Means",
+
+        "task": "Clustering",
+
         "clusters": clusters,
+
         "silhouette_score": round(
             score,
             4
         ),
+
         "cluster_labels": labels.tolist(),
+
         "cluster_centers": model.cluster_centers_.tolist()
+
+    }
+def get_dataset_summary(
+        X_train,
+        X_test,
+        y
+):
+    """
+    Returns dataset summary.
+    """
+
+    return {
+
+        "training_samples": len(X_train),
+
+        "testing_samples": len(X_test),
+
+        "total_samples": len(X_train) + len(X_test),
+
+        "features": X_train.shape[1],
+
+        "target_classes": int(
+            len(pd.Series(y).unique())
+        )
+
     }
 def run_machine_learning(
         df,
@@ -379,101 +549,193 @@ def run_machine_learning(
     Main Machine Learning Controller.
     """
 
-    if algorithm is None:
-        raise ValueError("Algorithm is required.")
+    try:
 
-    # Normalize algorithm name
-    algorithm = (
-        algorithm.strip()
-        .lower()
-        .replace("-", " ")
-        .replace("_", " ")
-    )
+        # ----------------------------
+        # Validate Algorithm
+        # ----------------------------
 
-    # -------------------------------
-    # K-Means (Unsupervised Learning)
-    # -------------------------------
-    if algorithm == "k means":
+        algorithm = validate_algorithm(
+            algorithm
+        )
 
-        X = pd.get_dummies(
+        # ----------------------------
+        # K-Means (Unsupervised)
+        # ----------------------------
+
+        if algorithm == "k means":
+
+            X = pd.get_dummies(
+                df,
+                drop_first=True
+            )
+
+            return train_kmeans(X)
+
+        # ----------------------------
+        # Validate Target
+        # ----------------------------
+
+        validate_target(
             df,
+            target_column
+        )
+
+        X, y = prepare_dataset(
+            df,
+            target_column
+        )
+
+        problem_type = detect_problem_type(
+            y
+        )
+
+        # ----------------------------
+        # Linear Regression Validation
+        # ----------------------------
+
+        if (
+                algorithm == "linear regression"
+                and problem_type != "regression"
+        ):
+
+            raise ValueError(
+
+                "Linear Regression requires a numeric target column."
+
+            )
+
+        # ----------------------------
+        # Classification Validation
+        # ----------------------------
+
+        if (
+
+                algorithm in {
+
+                    "logistic regression",
+
+                    "decision tree",
+
+                    "random forest"
+
+                }
+
+                and
+
+                problem_type != "classification"
+
+        ):
+
+            raise ValueError(
+
+                "Selected target is continuous.\n"
+                "Please use Linear Regression."
+
+            )
+
+        # ----------------------------
+        # Train Test Split
+        # ----------------------------
+
+        X_train, X_test, y_train, y_test = split_dataset(
+
+            X,
+
+            y,
+
+            test_size=test_size
+
+        )
+        dataset_summary = get_dataset_summary(
+    X_train,
+    X_test,
+    y
+)
+
+        # ----------------------------
+        # Run Selected Algorithm
+        # ----------------------------
+
+        if algorithm == "linear regression":
+
+            return train_linear_regression(
+
+                X_train,
+
+                X_test,
+
+                y_train,
+
+                y_test
+
+            )
+
+        elif algorithm == "logistic regression":
+
+            result = train_linear_regression(
+                X_train,
+                X_test,
+                y_train,
+                y_test
+            )
+
+            result["dataset_summary"] = dataset_summary
+
+            return result
+
+        elif algorithm == "decision tree":
+
+            result = train_decision_tree(
+                X_train,
+                X_test,
+                y_train,
+                y_test
+            )
+
+            result["dataset_summary"] = dataset_summary
+
+            return result
+
+        elif algorithm == "random forest":
+
+            result = train_random_forest(
+                X_train,
+                X_test,
+                y_train,
+                y_test
+            )
+
+            result["dataset_summary"] = dataset_summary
+
+            return result
+        elif algorithm == "k means":
+
+             X = pd.get_dummies(
+             df,
             drop_first=True
-        )
+             )
 
-        return train_kmeans(X)
+             result = train_kmeans(X)
 
-    # --------------------------------
-    # Supervised Learning
-    # --------------------------------
-    if target_column is None:
-        raise ValueError(
-            "Target column is required for supervised learning."
-        )
+             result["dataset_summary"] = {
 
-    X, y = prepare_dataset(
-        df,
-        target_column
-    )
+              "total_samples": len(df),
 
-    X_train, X_test, y_train, y_test = split_dataset(
-        X,
-        y,
-        test_size=test_size
-    )
+               "features": X.shape[1],
 
-    # -------------------------------
-    # Linear Regression
-    # -------------------------------
-    if algorithm == "linear regression":
+                "clusters": result["clusters"]
 
-        return train_linear_regression(
-            X_train,
-            X_test,
-            y_train,
-            y_test
-        )
+            }
 
-    # -------------------------------
-    # Logistic Regression
-    # -------------------------------
-    elif algorithm == "logistic regression":
+        return result
 
-        return train_logistic_regression(
-            X_train,
-            X_test,
-            y_train,
-            y_test
-        )
+    except Exception as error:
 
-    # -------------------------------
-    # Decision Tree
-    # -------------------------------
-    elif algorithm == "decision tree":
+        return {
 
-        return train_decision_tree(
-            X_train,
-            X_test,
-            y_train,
-            y_test
-        )
+            "success": False,
 
-    # -------------------------------
-    # Random Forest
-    # -------------------------------
-    elif algorithm == "random forest":
+            "error": str(error)
 
-        return train_random_forest(
-            X_train,
-            X_test,
-            y_train,
-            y_test
-        )
-
-    # -------------------------------
-    # Invalid Algorithm
-    # -------------------------------
-    else:
-
-        raise ValueError(
-            f"Unsupported algorithm: {algorithm}"
-        )
+        }

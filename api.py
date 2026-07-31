@@ -1,225 +1,554 @@
 import os
-
 import traceback
 import pandas as pd
-from flask import Blueprint, jsonify, request
+
+from flask import (
+    Blueprint,
+    jsonify,
+    request
+)
+
 from werkzeug.utils import secure_filename
+
 from visualization import generate_all_visualizations
 from preprocessing import preprocess_dataset
 from machine_learning import run_machine_learning
 from ai_insights import generate_ai_insights
 
-main = Blueprint("main", __name__)
-
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
-
-@main.route("/api/home")
-def home():
-    return jsonify({
-        "message": "THIS IS MY NEW API"
-    })
-
-@main.route("/health")
-def health():
-    return jsonify({
-        "status": "OK",
-        "service": "Blitz API"
-    })
 
 
+
+main = Blueprint(
+    "main",
+    __name__
+)
+
+
+
+
+UPLOAD_FOLDER = os.path.join(
+    os.path.dirname(__file__),
+    "uploads"
+)
+
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True
+)
+
+
+
+
+SUPPORTED_EXTENSIONS = (
+    ".csv",
+    ".xlsx",
+    ".xls"
+)
+
+
+
+
+def sanitize_dataframe(df):
+    """
+    Converts NaN values into empty strings
+    so they can be safely converted into JSON.
+    """
+
+    return (
+        df
+        .replace({pd.NA: ""})
+        .fillna("")
+    )
+
+
+
+
+def load_dataset(filepath):
+    """
+    Loads CSV or Excel datasets.
+    """
+
+    if filepath.endswith(".csv"):
+
+        return pd.read_csv(
+            filepath,
+            sep=None,
+            engine="python"
+        )
+
+    elif filepath.endswith((".xlsx", ".xls")):
+
+        return pd.read_excel(
+            filepath
+        )
+
+    raise ValueError(
+        "Unsupported file format."
+    )
+
+
+
+def get_dataset_info(df):
+    """
+    Returns basic dataset information.
+    """
+
+    preview = (
+        sanitize_dataframe(df)
+        .head()
+        .to_dict(
+            orient="records"
+        )
+    )
+
+    return {
+
+        "rows": len(df),
+
+        "columns": len(df.columns),
+
+        "column_names": list(df.columns),
+
+        "preview": preview
+
+    }
+
+
+
+
+def get_validation_report(df):
+    """
+    Returns validation report.
+    """
+
+    return {
+
+        "data_types": df.dtypes.astype(str).to_dict(),
+
+        "missing_values": df.isnull().sum().to_dict(),
+
+        "duplicate_rows": int(
+            df.duplicated().sum()
+        )
+
+    }
+
+
+def get_health_report(df):
+    """
+    Generates dataset health report.
+    """
+
+    total_missing = int(
+        df.isnull().sum().sum()
+    )
+
+    duplicate_rows = int(
+        df.duplicated().sum()
+    )
+
+    health_score = 100
+
+    health_score -= min(
+        total_missing * 2,
+        30
+    )
+
+    health_score -= min(
+        duplicate_rows * 5,
+        20
+    )
+
+    health_score = max(
+        0,
+        health_score
+    )
+
+    if health_score >= 90:
+        status = "Excellent"
+
+    elif health_score >= 75:
+        status = "Good"
+
+    elif health_score >= 50:
+        status = "Fair"
+
+    else:
+        status = "Poor"
+
+    return {
+
+        "status": status,
+
+        "health_score": health_score,
+
+        "total_missing_values": total_missing,
+
+        "duplicate_rows": duplicate_rows
+
+    }
+
+
+
+
+def get_summary_statistics(df):
+    """
+    Returns dataset statistics.
+    """
+
+    summary = (
+
+        df.describe(
+            include="all"
+        )
+
+        .fillna("")
+
+        .replace(
+            [float("inf"), float("-inf")],
+            ""
+        )
+
+    )
+
+    return summary.to_dict()
+
+
+
+def get_correlation_analysis(df):
+    """
+    Returns correlation analysis.
+    """
+
+    numeric_df = df.select_dtypes(
+        include=["number"]
+    )
+
+    if numeric_df.shape[1] < 2:
+
+        return {
+
+            "correlation_matrix": {},
+
+            "strongest_correlation": {}
+
+        }
+
+    correlation_matrix = (
+
+        numeric_df
+
+        .corr()
+
+        .round(2)
+
+    )
+
+    correlation_matrix_dict = (
+
+        correlation_matrix
+
+        .fillna(0)
+
+        .to_dict()
+
+    )
+
+    strongest = {}
+
+    pairs = []
+
+    columns = correlation_matrix.columns
+
+    for i in range(len(columns)):
+
+        for j in range(i + 1, len(columns)):
+
+            value = correlation_matrix.iloc[i, j]
+
+            pairs.append({
+
+                "feature_1": columns[i],
+
+                "feature_2": columns[j],
+
+                "correlation": round(
+                    float(value),
+                    2
+                )
+
+            })
+
+    if pairs:
+
+        strongest = max(
+
+            pairs,
+
+            key=lambda x: abs(
+                x["correlation"]
+            )
+
+        )
+
+    return {
+
+        "correlation_matrix": correlation_matrix_dict,
+
+        "strongest_correlation": strongest
+
+    }
 @main.route("/upload", methods=["POST"])
 def upload_file():
 
-    if "file" not in request.files:
-        return jsonify({
-            "success": False,
-            "message": "No file uploaded."
-        }), 400
-
-    file = request.files["file"]
-
-    if file.filename == "":
-        return jsonify({
-            "success": False,
-            "message": "No file selected."
-        }), 400
-
-    filename = secure_filename(file.filename)
-
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-
     try:
 
-      
+        # ----------------------------------
+        # Check File
+        # ----------------------------------
 
-        if filename.endswith(".csv"):
-            df = pd.read_csv(filepath, sep=None, engine="python")
+        if "file" not in request.files:
 
-        elif filename.endswith((".xlsx", ".xls")):
-            df = pd.read_excel(filepath)
-
-        else:
             return jsonify({
-                "success": False,
-                "message": "Unsupported file format. Please upload CSV or Excel."
-            }), 400
-        processed_df, preprocessing_report = preprocess_dataset(df)
 
-        preprocessing_report["preview"] = processed_df.head().to_dict(orient="records")
+                "success": False,
+
+                "message": "No file uploaded."
+
+            }), 400
+
+        file = request.files["file"]
+
+        if file.filename == "":
+
+            return jsonify({
+
+                "success": False,
+
+                "message": "No file selected."
+
+            }), 400
+
+        filename = secure_filename(
+            file.filename
+        )
+
+        if not filename.lower().endswith(
+                SUPPORTED_EXTENSIONS
+        ):
+
+            return jsonify({
+
+                "success": False,
+
+                "message": "Unsupported file format."
+
+            }), 400
+
+        filepath = os.path.join(
+            UPLOAD_FOLDER,
+            filename
+        )
+
+        file.save(filepath)
+
+        # ----------------------------------
+        # Load Dataset
+        # ----------------------------------
+
+        df = load_dataset(
+            filepath
+        )
+
+        df = sanitize_dataframe(
+            df
+        )
+
+        # ----------------------------------
+        # Preprocessing
+        # ----------------------------------
+
+        processed_df, preprocessing_report = preprocess_dataset(
+            df
+        )
+
+        preprocessing_report["preview"] = (
+
+            sanitize_dataframe(
+                processed_df
+            )
+
+            .head()
+
+            .to_dict(
+                orient="records"
+            )
+
+        )
+
+       
+        algorithm = request.form.get(
+            "algorithm"
+        )
+
+        target_column = request.form.get(
+            "target_column"
+        )
+
         
-        algorithm = request.form.get("algorithm")
-        target_column = request.form.get("target_column")
 
         ml_result = None
 
         if algorithm:
-          ml_result = run_machine_learning(
-               processed_df,
-               algorithm=algorithm,
-               target_column=target_column
-    )
-        dataset_info = {
-            "rows": len(df),
-            "columns": len(df.columns),
-            "column_names": list(df.columns),
-            "preview": df.head().to_dict(orient="records")
-        }
 
-        
+            ml_result = run_machine_learning(
 
-        validation = {
-            "data_types": df.dtypes.astype(str).to_dict(),
-            "missing_values": df.isnull().sum().to_dict(),
-            "duplicate_rows": int(df.duplicated().sum())
-        }
+                processed_df,
 
-    
-        total_missing = int(df.isnull().sum().sum())
-        duplicate_rows = int(df.duplicated().sum())
+                algorithm,
 
-        health_score = 100
+                target_column
 
-        health_score -= min(total_missing * 2, 30)
-        health_score -= min(duplicate_rows * 5, 20)
+            )
 
-        health_score = max(0, health_score)
+        # ----------------------------------
+        # Dataset Reports
+        # ----------------------------------
 
-        if health_score >= 90:
-            status = "Excellent"
-        elif health_score >= 75:
-            status = "Good"
-        elif health_score >= 50:
-            status = "Fair"
-        else:
-            status = "Poor"
-
-        health_report = {
-            "status": status,
-            "health_score": health_score,
-            "total_missing_values": total_missing,
-            "duplicate_rows": duplicate_rows
-        }
-
-    
-
-        summary_statistics = (
-            df.describe(include="all")
-            .fillna("")
-            .to_dict()
+        dataset_info = get_dataset_info(
+            df
         )
 
+        validation = get_validation_report(
+            df
+        )
 
-        numeric_df = df.select_dtypes(include=["number"])
-        correlation_matrix = pd.DataFrame()
-        correlation_matrix_dict = {}
-        strongest_correlation = {}
+        health_report = get_health_report(
+            df
+        )
 
-        if numeric_df.shape[1] >= 2:
+        summary_statistics = get_summary_statistics(
+            df
+        )
 
-            correlation_matrix = numeric_df.corr().round(2)
-
-            correlation_matrix_dict = correlation_matrix.to_dict()
-
-            corr_pairs = []
-
-            columns = correlation_matrix.columns
-
-            for i in range(len(columns)):
-                for j in range(i + 1, len(columns)):
-
-                    value = correlation_matrix.iloc[i, j]
-
-                    corr_pairs.append({
-                        "feature_1": columns[i],
-                        "feature_2": columns[j],
-                        "correlation": round(float(value), 2)
-                    })
-
-            if corr_pairs:
-
-                strongest_correlation = max(
-                    corr_pairs,
-                    key=lambda x: abs(x["correlation"])
-                )
+        correlation_analysis = get_correlation_analysis(
+            df
+        )
+           
 
         ai_insights = generate_ai_insights(
-                processed_df,
-                preprocessing_report,
-                summary_statistics,
-                correlation_matrix,
-                ml_result
-                )
-        analysis = {
-            "summary_statistics": summary_statistics,
-            "correlation_matrix": correlation_matrix_dict,
-            "strongest_correlation": strongest_correlation,
-        }
+
+            processed_df,
+
+            preprocessing_report,
+
+            summary_statistics,
+
+            correlation_analysis["correlation_matrix"],
+
+            ml_result
+
+        )
+
+        
 
         insights = []
 
         insights.append(
             f"Dataset contains {len(df)} rows and {len(df.columns)} columns."
-       )
+        )
 
-        if total_missing == 0:
-          insights.append("No missing values were found.")
+        if health_report["total_missing_values"] == 0:
+
+            insights.append(
+                "No missing values were found."
+            )
+
         else:
-              insights.append(f"{total_missing} missing values detected.")
+
+            insights.append(
+
+                f"{health_report['total_missing_values']} missing values detected."
+
+            )
 
         insights.append(
-            f"Dataset health is {status} ({health_score}/100)."
+
+            f"Dataset health is "
+
+            f"{health_report['status']} "
+
+            f"({health_report['health_score']}/100)."
+
         )
 
+        if correlation_analysis["strongest_correlation"]:
 
-        if strongest_correlation:
+            strongest = correlation_analysis["strongest_correlation"]
+
             insights.append(
-                f"Strongest relationship found between "
-                f"{strongest_correlation['feature_1']} and "
-                f"{strongest_correlation['feature_2']} "
-                f"(Correlation = {strongest_correlation['correlation']})."
-            )
-        charts = generate_all_visualizations(df)
-        return jsonify( {
-            "success": True,
-            "filename": filename,
-            "dataset_info": dataset_info,
-            "validation": validation,
-            "health_report": health_report,
-            "analysis": analysis,
-            "insights": insights,
-            "visualizations": charts,
-            "preprocessing": preprocessing_report,
-            "machine_learning": ml_result,
-            "ai_insights": ai_insights,
-}
-        )
-    except Exception as e:
-      traceback.print_exc()
 
-      return jsonify({
-        "success": False,
-        "message": str(e)
-       }), 500
+                f"Strongest relationship found between "
+
+                f"{strongest['feature_1']} and "
+
+                f"{strongest['feature_2']} "
+
+                f"(Correlation = {strongest['correlation']})."
+
+            )
+
+        
+        charts = generate_all_visualizations(
+            processed_df
+        )
+
+        
+
+        return jsonify({
+
+            "success": True,
+
+            "filename": filename,
+
+            "dataset_info": dataset_info,
+
+            "validation": validation,
+
+            "health_report": health_report,
+
+            "analysis": {
+
+                "summary_statistics": summary_statistics,
+
+                "correlation_matrix":
+                correlation_analysis["correlation_matrix"],
+
+                "strongest_correlation":
+                correlation_analysis["strongest_correlation"]
+
+            },
+
+            "preprocessing": preprocessing_report,
+
+            "machine_learning": ml_result,
+
+            "ai_insights": ai_insights,
+
+            "insights": insights,
+
+            "visualizations": charts
+
+        })
+
+    except Exception as e:
+
+        traceback.print_exc()
+
+        return jsonify({
+
+            "success": False,
+
+            "message": str(e)
+
+        }), 500
