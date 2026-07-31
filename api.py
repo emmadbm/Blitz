@@ -294,6 +294,53 @@ def analyze_correlations(context):
     )
 
     return findings
+def get_correlation_analysis(df):
+    """
+    Returns correlation analysis.
+    """
+
+    numeric_df = df.select_dtypes(include=["number"])
+
+    if numeric_df.shape[1] < 2:
+        return {
+            "correlation_matrix": {},
+            "strongest_correlation": {}
+        }
+
+    correlation_matrix = numeric_df.corr().round(2)
+
+    correlation_matrix_dict = (
+        correlation_matrix
+        .fillna(0)
+        .to_dict()
+    )
+
+    strongest = {}
+    pairs = []
+
+    columns = correlation_matrix.columns
+
+    for i in range(len(columns)):
+        for j in range(i + 1, len(columns)):
+
+            value = correlation_matrix.iloc[i, j]
+
+            pairs.append({
+                "feature_1": columns[i],
+                "feature_2": columns[j],
+                "correlation": round(float(value), 2)
+            })
+
+    if pairs:
+        strongest = max(
+            pairs,
+            key=lambda x: abs(x["correlation"])
+        )
+
+    return {
+        "correlation_matrix": correlation_matrix_dict,
+        "strongest_correlation": strongest
+    }
 @main.route("/upload", methods=["POST"])
 def upload_file():
 
@@ -415,9 +462,7 @@ def upload_file():
             df
         )
 
-        correlation_analysis = get_correlation_analysis(
-            df
-        )
+        correlation_analysis = get_correlation_analysis(df)
            
 
         ai_insights = generate_ai_insights(
