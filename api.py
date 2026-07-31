@@ -215,98 +215,91 @@ def get_summary_statistics(df):
 
 
 
-def get_correlation_analysis(df):
+def analyze_correlations(context):
     """
-    Returns correlation analysis.
+    Identifies and ranks the strongest relationships
+    between numerical features.
     """
 
-    numeric_df = df.select_dtypes(
-        include=["number"]
-    )
+    correlation_matrix = context["correlations"]
 
-    if numeric_df.shape[1] < 2:
+    # Convert dictionary to DataFrame if needed
+    if isinstance(correlation_matrix, dict):
+        correlation_matrix = pd.DataFrame(correlation_matrix)
 
-        return {
+    if correlation_matrix.empty:
+        return []
 
-            "correlation_matrix": {},
+    findings = []
+    visited = set()
 
-            "strongest_correlation": {}
+    for col1 in correlation_matrix.columns:
 
-        }
+        for col2 in correlation_matrix.columns:
 
-    correlation_matrix = (
+            if col1 == col2:
+                continue
 
-        numeric_df
+            pair = tuple(sorted((col1, col2)))
 
-        .corr()
+            if pair in visited:
+                continue
 
-        .round(2)
+            visited.add(pair)
 
-    )
+            try:
+                value = float(correlation_matrix.loc[col1, col2])
+            except (TypeError, ValueError):
+                continue
 
-    correlation_matrix_dict = (
+            if pd.isna(value):
+                continue
 
-        correlation_matrix
+            if abs(value) >= 0.90:
+                strength = "Very Strong"
 
-        .fillna(0)
+            elif abs(value) >= 0.70:
+                strength = "Strong"
 
-        .to_dict()
+            elif abs(value) >= 0.50:
+                strength = "Moderate"
 
-    )
+            elif abs(value) >= 0.30:
+                strength = "Weak"
 
-    strongest = {}
+            else:
+                continue
 
-    pairs = []
+            findings.append({
 
-    columns = correlation_matrix.columns
+                "feature1": col1,
 
-    for i in range(len(columns)):
+                "feature2": col2,
 
-        for j in range(i + 1, len(columns)):
+                "correlation": round(value, 3),
 
-            value = correlation_matrix.iloc[i, j]
+                "strength": strength,
 
-            pairs.append({
-
-                "feature_1": columns[i],
-
-                "feature_2": columns[j],
-
-                "correlation": round(
-                    float(value),
-                    2
+                "direction": (
+                    "Positive"
+                    if value > 0
+                    else "Negative"
                 )
 
             })
 
-    if pairs:
+    findings.sort(
+        key=lambda x: abs(x["correlation"]),
+        reverse=True
+    )
 
-        strongest = max(
-
-            pairs,
-
-            key=lambda x: abs(
-                x["correlation"]
-            )
-
-        )
-
-    return {
-
-        "correlation_matrix": correlation_matrix_dict,
-
-        "strongest_correlation": strongest
-
-    }
+    return findings
 @main.route("/upload", methods=["POST"])
 def upload_file():
 
     try:
 
-        # ----------------------------------
-        # Check File
-        # ----------------------------------
-
+     
         if "file" not in request.files:
 
             return jsonify({
@@ -352,9 +345,7 @@ def upload_file():
 
         file.save(filepath)
 
-        # ----------------------------------
-        # Load Dataset
-        # ----------------------------------
+        
 
         df = load_dataset(
             filepath
@@ -364,9 +355,6 @@ def upload_file():
             df
         )
 
-        # ----------------------------------
-        # Preprocessing
-        # ----------------------------------
 
         processed_df, preprocessing_report = preprocess_dataset(
             df
@@ -410,10 +398,6 @@ def upload_file():
                 target_column
 
             )
-
-        # ----------------------------------
-        # Dataset Reports
-        # ----------------------------------
 
         dataset_info = get_dataset_info(
             df
