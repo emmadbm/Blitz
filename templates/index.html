@@ -8,13 +8,14 @@
 
     <title>Blitz | AI Data Analytics</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -22,92 +23,115 @@
 
     <div class="container">
 
-        <!-- Header -->
+        <!-- ================= HEADER ================= -->
 
-        <header>
+        <header class="logo">
 
-            <h1>⚡ Blitz</h1>
+            <h1>⚡ BLITZ</h1>
 
-            <p>AI Powered Data Analytics Platform</p>
+            <p>AI-Powered Data Analytics Platform</p>
+
+            <span>Upload • Analyze • Visualize • Predict</span>
 
         </header>
 
+        <!-- ================= UPLOAD ================= -->
 
-        <!-- Upload Section -->
+        <section class="upload-section">
 
-        <!-- Upload Section -->
+            <div class="upload-box">
 
-<section class="upload-section">
+                <div class="upload-icon">
+                    📂
+                </div>
 
-    <div class="upload-box">
+                <h2>Upload Dataset</h2>
 
-        <div class="upload-icon">
-            📂
-        </div>
+                <p id="fileName">
+                    Drag & Drop your CSV or Excel file
+                </p>
 
-        <h2>Upload Dataset</h2>
+                <label for="datasetFile" class="upload-btn">
 
-        <p id="fileName">
-            Drag & Drop your CSV or Excel file
-        </p>
+                    Browse Files
 
-        <label for="datasetFile" class="upload-btn">
-            Browse Files
-        </label>
+                </label>
 
-        <input
-            type="file"
-            id="datasetFile"
-            accept=".csv,.xlsx,.xls"
-            hidden>
-
-    </div>
-
-</section>
-
-
-        <!-- Controls -->
-
-        <section class="controls">
-
-            <div class="input-group">
-
-                <label>Algorithm</label>
-
-                <select id="algorithm">
-
-                    <option value="">Select Algorithm</option>
-
-                    <option value="linear regression">Linear Regression</option>
-
-                    <option value="logistic regression">Logistic Regression</option>
-
-                    <option value="decision tree">Decision Tree</option>
-
-                    <option value="random forest">Random Forest</option>
-
-                    <option value="k-means">K-Means</option>
-
-                </select>
+                <input
+                    type="file"
+                    id="datasetFile"
+                    accept=".csv,.xlsx,.xls"
+                    hidden>
 
             </div>
 
-            <div class="input-group">
+        </section>
 
-    <label>Target Column</label>
+        <!-- ================= CONTROLS ================= -->
 
-    <select id="targetColumn">
+        <section class="control-card">
 
-        <option value="">Select Target</option>
+            <div class="controls">
 
-    </select>
+                <div class="input-group">
 
-</div>
+                    <label for="algorithm">
+
+                        Algorithm
+
+                    </label>
+
+                    <select id="algorithm">
+
+                        <option value="">Select Algorithm</option>
+
+                        <option value="linear regression">
+                            Linear Regression
+                        </option>
+
+                        <option value="logistic regression">
+                            Logistic Regression
+                        </option>
+
+                        <option value="decision tree">
+                            Decision Tree
+                        </option>
+
+                        <option value="random forest">
+                            Random Forest
+                        </option>
+
+                        <option value="k-means">
+                            K-Means
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label for="targetColumn">
+
+                        Target Column
+
+                    </label>
+
+                    <select id="targetColumn">
+
+                        <option value="">
+                            Select Target
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
 
         </section>
 
-
-        <!-- Analyze Button -->
+        <!-- ================= BUTTON ================= -->
 
         <section class="analyze">
 
@@ -119,21 +143,39 @@
 
         </section>
 
-
-        <!-- Loading -->
+        <!-- ================= LOADING ================= -->
 
         <section id="loading" class="hidden">
 
-            <p>Analyzing dataset...</p>
+            <h3>
+
+                Analyzing Dataset...
+
+            </h3>
 
         </section>
 
+        <section id="results" class="results-dashboard">
 
-        <!-- Results -->
+    <!-- Dataset Summary -->
+    <div id="datasetCard" class="dashboard-card"></div>
 
-        <section id="results">
+    <!-- Health Report -->
+    <div id="healthCard" class="dashboard-card"></div>
 
-        </section>
+    <!-- Preprocessing -->
+    <div id="preprocessingCard" class="dashboard-card"></div>
+
+    <!-- Machine Learning -->
+    <div id="mlCard" class="dashboard-card"></div>
+
+    <!-- AI Insights -->
+    <div id="aiCard" class="dashboard-card"></div>
+
+    <!-- Charts -->
+    <div id="chartsCard" class="dashboard-card"></div>
+
+</section>
 
     </div>
 
