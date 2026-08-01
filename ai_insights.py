@@ -1100,9 +1100,9 @@ def generate_executive_summary(context):
     summary.append(
 
         f"The analysis was successfully completed "
-        f"on the **{dataset['dataset_name']}** dataset, "
-        f"which contains **{dataset['rows']} records** "
-        f"and **{dataset['columns']} features**."
+        f"on the {dataset['dataset_name']}dataset, "
+        f"which contains {dataset['rows']} records "
+        f"and {dataset['columns']} features."
 
     )
 
@@ -1111,9 +1111,9 @@ def generate_executive_summary(context):
     summary.append(
 
         f"The preprocessing pipeline produced an "
-        f"overall **{quality['quality']}** data quality "
+        f"overall {quality['quality']} data quality "
         f"rating with a score of "
-        f"**{quality['quality_score']}/100**."
+        f"{quality['quality_score']}/100."
 
     )
 
@@ -1125,12 +1125,12 @@ def generate_executive_summary(context):
         summary.append(
 
             f"The strongest relationship was found "
-            f"between **{strongest['feature1']}** "
-            f"and **{strongest['feature2']}**, "
+            f"between {strongest['feature1']}"
+            f"and {strongest['feature2']}, "
             f"showing a "
-            f"**{strongest['strength'].lower()} "
+            f"{strongest['strength'].lower()} "
             f"{strongest['direction'].lower()} "
-            f"correlation**."
+            f"correlation."
 
         )
 
@@ -1139,13 +1139,13 @@ def generate_executive_summary(context):
 
         summary.append(
 
-            f"The **{ml['algorithm']}** model "
+            f"The {ml['algorithm']} model "
 
-            f"delivered **{ml['performance'].lower()}** "
+            f"delivered {ml['performance'].lower()} "
 
             f"performance for this "
 
-            f"**{ml['problem_type'].lower()}** task."
+            f"{ml['problem_type'].lower()}task."
 
         )
 

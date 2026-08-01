@@ -1,10 +1,12 @@
 import os
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-CHART_FOLDER = os.path.join(os.path.dirname(__file__), "charts")
+CHART_FOLDER = os.path.join(os.path.dirname(__file__), "static","charts")
 os.makedirs(CHART_FOLDER, exist_ok=True)
 
 
@@ -36,7 +38,7 @@ def generate_histogram(df, column):
     plt.savefig(filepath)
     plt.close()
 
-    return filepath
+    return f"/static/charts/{filename}"
 
 
 def generate_pie_chart(df, column):
@@ -65,7 +67,7 @@ def generate_pie_chart(df, column):
     plt.savefig(filepath)
     plt.close()
 
-    return filepath
+    return f"/static/charts/{filename}"
 
 
 def generate_heatmap(df):
@@ -95,7 +97,7 @@ def generate_heatmap(df):
     plt.savefig(filepath)
     plt.close()
 
-    return filepath
+    return f"/static/charts/{filename}"
 
 
 def generate_all_visualizations(df):
