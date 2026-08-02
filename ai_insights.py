@@ -462,27 +462,33 @@ def analyze_machine_learning(context):
     if not ml:
         return None
 
-    algorithm = ml.get(
-        "algorithm",
-        "Not Selected"
-    )
+    algorithm = ml.get("algorithm")
 
-    metrics = ml.get(
-        "metrics",
-        {}
-    )
+    if not algorithm:
+        algorithm = "Machine Learning"
 
+    metrics = ml.get("metrics", {})
 
+    # -------------------------
+    # Detect Problem Type
+    # -------------------------
 
     if algorithm.lower() == "k-means":
 
         problem_type = "Clustering"
 
-    elif "Accuracy" in metrics:
+    elif (
+        "Accuracy" in metrics or
+        "accuracy" in metrics
+    ):
 
         problem_type = "Classification"
 
-    elif "R2 Score" in metrics:
+    elif (
+        "R2 Score" in metrics or
+        "R² Score" in metrics or
+        "r2_score" in metrics
+    ):
 
         problem_type = "Regression"
 
@@ -490,17 +496,25 @@ def analyze_machine_learning(context):
 
         problem_type = "Unknown"
 
-    
+    performance = "Completed"
 
-    performance = "Unknown"
+    confidence = "Moderate"
 
-    interpretation = ""
+    interpretation = (
+        "The model completed successfully."
+    )
 
-    confidence = "Low"
+    # -------------------------
+    # Classification
+    # -------------------------
 
     if problem_type == "Classification":
 
-        accuracy = metrics.get("Accuracy", 0)
+        accuracy = (
+            metrics.get("Accuracy")
+            or metrics.get("accuracy")
+            or 0
+        )
 
         if accuracy >= 0.90:
 
@@ -520,22 +534,31 @@ def analyze_machine_learning(context):
         else:
 
             performance = "Needs Improvement"
+            confidence = "Low"
 
         interpretation = (
 
-            f"The model achieved an accuracy of "
-
-            f"{accuracy:.2%}, indicating "
-
-            f"{performance.lower()} "
-
-            "classification performance."
+            f"The {algorithm} model achieved "
+            f"an accuracy of {accuracy:.2%}, "
+            f"indicating {performance.lower()} "
+            f"classification performance."
 
         )
 
+    # -------------------------
+    # Regression
+    # -------------------------
+
     elif problem_type == "Regression":
 
-        r2 = metrics.get("R2 Score", 0)
+        r2 = (
+
+            metrics.get("R2 Score")
+            or metrics.get("R² Score")
+            or metrics.get("r2_score")
+            or 0
+
+        )
 
         if r2 >= 0.90:
 
@@ -555,18 +578,20 @@ def analyze_machine_learning(context):
         else:
 
             performance = "Needs Improvement"
+            confidence = "Low"
 
         interpretation = (
 
-            f"The regression model achieved an "
-
-            f"R² Score of {r2:.3f}, "
-
+            f"The {algorithm} model achieved "
+            f"an R² Score of {r2:.3f}, "
             f"indicating {performance.lower()} "
-
-            "predictive capability."
+            f"predictive capability."
 
         )
+
+    # -------------------------
+    # Clustering
+    # -------------------------
 
     elif problem_type == "Clustering":
 
@@ -576,15 +601,15 @@ def analyze_machine_learning(context):
 
         interpretation = (
 
-            "The clustering algorithm successfully "
-
-            "grouped similar observations into "
-
-            "distinct clusters."
+            f"The {algorithm} algorithm "
+            f"successfully grouped similar "
+            f"observations into meaningful clusters."
 
         )
 
-    
+    # -------------------------
+    # Feature Importance
+    # -------------------------
 
     feature_importance = ml.get(
         "feature_importance",
@@ -608,9 +633,7 @@ def analyze_machine_learning(context):
         "interpretation": interpretation
 
     }
-# ------------------------------------
-# Dataset Overview
-# ------------------------------------
+
 
 def generate_dataset_overview(context):
     """
@@ -1095,66 +1118,72 @@ def generate_executive_summary(context):
 
     summary = []
 
-    
-
+    # Dataset Overview
     summary.append(
 
-        f"The analysis was successfully completed "
-        f"on the {dataset['dataset_name']}dataset, "
-        f"which contains {dataset['rows']} records "
-        f"and {dataset['columns']} features."
+        f"The analysis was successfully completed on the "
+        f"{dataset['dataset_name']}, which contains "
+        f"{dataset['rows']} records and "
+        f"{dataset['columns']} features."
 
     )
 
-   
-
+    # Data Quality
     summary.append(
 
-        f"The preprocessing pipeline produced an "
-        f"overall {quality['quality']} data quality "
-        f"rating with a score of "
-        f"{quality['quality_score']}/100."
+        f"The preprocessing pipeline cleaned and prepared "
+        f"the dataset, resulting in an overall "
+        f"{quality['quality']} data quality rating "
+        f"with a score of {quality['quality_score']}/100."
 
     )
 
-    
+    # Correlation Summary
     if correlations:
 
         strongest = correlations[0]
 
         summary.append(
 
-            f"The strongest relationship was found "
-            f"between {strongest['feature1']}"
-            f"and {strongest['feature2']}, "
-            f"showing a "
+            f"The strongest relationship was observed between "
+            f"{strongest['feature1']} and "
+            f"{strongest['feature2']}, indicating a "
             f"{strongest['strength'].lower()} "
-            f"{strongest['direction'].lower()} "
-            f"correlation."
+            f"{strongest['direction'].lower()} correlation."
 
         )
 
-  
+    # Machine Learning Summary
     if ml:
 
-        summary.append(
+        algorithm = ml.get("algorithm", "Machine Learning")
 
-            f"The {ml['algorithm']} model "
+        performance = ml.get("performance")
 
-            f"delivered {ml['performance'].lower()} "
+        if performance and performance.lower() != "unknown":
 
-            f"performance for this "
+            summary.append(
 
-            f"{ml['problem_type'].lower()}task."
+                f"The selected {algorithm} model achieved "
+                f"{performance.lower()} performance."
 
-        )
+            )
 
-   
+        else:
+
+            summary.append(
+
+                f"The selected {algorithm} model completed "
+                f"successfully and generated prediction results."
+
+            )
+
+    # Closing Statement
     summary.append(
 
-        "Overall, the dataset is well prepared for "
-        "exploratory analysis and predictive "
-        "modeling, providing reliable insights for "
+        "Overall, the dataset is clean, well-prepared, and "
+        "ready for exploratory analysis, visualization, and "
+        "predictive modeling, providing reliable support for "
         "data-driven decision making."
 
     )
