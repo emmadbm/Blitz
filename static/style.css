@@ -50,7 +50,17 @@ header p{
     margin-top:10px;
 
 }
+.blitz-logo{
 
+    width:120px;
+
+    height:auto;
+
+    display:block;
+
+    margin:0 auto 15px;
+
+}
 
 
 .upload-box{
@@ -370,9 +380,7 @@ header p{
 
 }
 
-/* ==============================
-   CHARTS
-============================== */
+
 
 .chart-grid{
 
@@ -416,9 +424,7 @@ header p{
 
 }
 
-/* ==============================
-   TABLES
-============================== */
+
 
 table{
 
@@ -454,9 +460,7 @@ table tr:hover{
 
 }
 
-/* ==============================
-   RESPONSIVE
-============================== */
+
 
 @media(max-width:768px){
 
