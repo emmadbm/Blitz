@@ -215,11 +215,8 @@ def get_summary_statistics(df):
 
 
 
-def analyze_correlations(context):
-    """
-    Identifies and ranks the strongest relationships
-    between numerical features.
-    """
+'''def analyze_correlations(context):
+    
 
     correlation_matrix = context["correlations"]
 
@@ -293,7 +290,7 @@ def analyze_correlations(context):
         reverse=True
     )
 
-    return findings
+    return findings'''
 def get_correlation_analysis(df):
     """
     Returns correlation analysis.
